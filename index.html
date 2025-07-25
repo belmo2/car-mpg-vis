@@ -20,26 +20,30 @@
     <span id="scene-label"></span>
     <button id="next">Next</button>
   </div>
+
   <script>
     let scene = 0, makes, topMakes;
     const scenes = [drawScene0, drawScene1, drawScene2];
-    const w = 1200, h = 550, mT=50, mB=130, mL=90, mR=90;
+    const w = 1200, h = 550, mT = 50, mB = 130, mL = 90, mR = 90;
 
+    // Load and prepare data
     d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
-      makes = d3.groups(raw, d=>d.Make).map(([make,cars])=>({
+      makes = d3.groups(raw, d => d.Make).map(([make, cars]) => ({
         make,
-        avgMPG: d3.mean(cars, d=>(+d.AverageCityMPG + +d.AverageHighwayMPG)/2),
+        avgMPG: d3.mean(cars, r => (+r["AverageCityMPG"] + +r["AverageHighwayMPG"]) / 2),
         models: cars
-      })).sort((a,b)=>d3.descending(a.avgMPG,b.avgMPG));
-      topMakes = makes.slice(0,3).map(d=>d.make);
+      }))
+      .sort((a, b) => d3.descending(a.avgMPG, b.avgMPG));
+      topMakes = makes.slice(0,3).map(d => d.make);
       updateScene();
     });
 
-    function drawScene0(){
+    // Scene 1
+    function drawScene0() {
       d3.select("#scene-label").text("Scene 1: Average MPG by Make");
       const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
       const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
         .attr("class","bar")
@@ -52,10 +56,10 @@
         .attr("transform",`translate(0,${h-mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .selectAll("text")
-          .attr("transform","rotate(-65)")
-          .attr("dx","-0.8em")
-          .attr("dy","0.15em")
-          .style("text-anchor","end");
+        .attr("transform","rotate(-65)")
+        .attr("dx","-0.8em")
+        .attr("dy","0.15em")
+        .style("text-anchor","end");
 
       svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
 
@@ -67,11 +71,12 @@
         .text("Use Next/Previous to explore.");
     }
 
-    function drawScene1(){
+    // Scene 2
+    function drawScene1() {
       d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
       const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
       const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
         .attr("class",d=> topMakes.includes(d.make)?"bar highlight":"bar")
@@ -84,10 +89,10 @@
         .attr("transform",`translate(0,${h-mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .selectAll("text")
-          .attr("transform","rotate(-65)")
-          .attr("dx","-0.8em")
-          .attr("dy","0.15em")
-          .style("text-anchor","end");
+        .attr("transform","rotate(-65)")
+        .attr("dx","-0.8em")
+        .attr("dy","0.15em")
+        .style("text-anchor","end");
 
       svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
 
@@ -108,11 +113,12 @@
         .text("Highlighted and ranked.");
     }
 
-    function drawScene2(){
+    // Scene 3
+    function drawScene2() {
       d3.select("#scene-label").text("Scene 3: Drill Down by Make");
       const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
       const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
         .attr("class","bar")
@@ -126,10 +132,10 @@
         .attr("transform",`translate(0,${h-mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .selectAll("text")
-          .attr("transform","rotate(-65)")
-          .attr("dx","-0.8em")
-          .attr("dy","0.15em")
-          .style("text-anchor","end");
+        .attr("transform","rotate(-65)")
+        .attr("dx","-0.8em")
+        .attr("dy","0.15em")
+        .style("text-anchor","end");
 
       svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
 
@@ -138,25 +144,24 @@
         .text("Click a Make to See Its Models");
       svg.append("text")
         .attr("x",w/2).attr("y",mT/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-        .text("Drill down for individual models.");
+        .text("Drill down for models.");
     }
 
-    function showModels(makeObj){
+    // Drill‑down function
+    function showModels(makeObj) {
       d3.select(".scene-nav").style("display","none");
       d3.select("#vis").html("");
+      const w2 = 1200, h2 = 500, mT2 = 50, mB2 = 130, mL2 = 140, mR2 = 140;
+      const svg = d3.select("#vis").append("svg").attr("width",w2).attr("height",h2);
 
-      const w2=1200,h2=500,mT2=50,mB2=130,mL2=140,mR2=140;
-      const svg=d3.select("#vis").append("svg").attr("width",w2).attr("height",h2);
+      // Build model list with correct field names
+      let models = makeObj.models.map((r,i) => ({
+        label: `${r["Model"]} (${i})`,
+        mpg: (+r["AverageCityMPG"] + +r["AverageHighwayMPG"])/2
+      })).sort((a,b) => d3.descending(a.mpg,b.mpg));
 
-      // map models, ensure uniqueness by index
-      let models = makeObj.models.map((d,i)=>({
-        model: d.Model,
-        mpg: (+d.AverageCityMPG + +d.AverageHighwayMPG)/2,
-        label: `${d.Model} (${i})`
-      })).sort((a,b)=>d3.descending(a.mpg,b.mpg));
-
-      const x2=d3.scaleBand().domain(models.map(d=>d.label)).range([mL2,w2-mR2]).padding(0.2);
-      const y2=d3.scaleLinear().domain([0,d3.max(models,d=>d.mpg)]).range([h2-mB2,mT2]);
+      const x2 = d3.scaleBand().domain(models.map(d=>d.label)).range([mL2,w2-mR2]).padding(0.2);
+      const y2 = d3.scaleLinear().domain([0,d3.max(models,d=>d.mpg)]).range([h2-mB2,mT2]);
 
       svg.selectAll("rect").data(models).join("rect")
         .attr("x",d=>x2(d.label))
@@ -179,34 +184,36 @@
       svg.append("text")
         .attr("x",w2/2).attr("y",mT2/2).attr("text-anchor","middle").attr("font-size","18px")
         .text(`Models for ${makeObj.make} (Avg MPG)`);
-
       svg.append("text")
         .attr("x",w2/2).attr("y",mT2/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
         .text("Each bar shows the average MPG.");
 
       svg.selectAll("text.mpg-label").data(models).join("text")
         .attr("class","mpg-label")
-        .attr("x",d=> x2(d.label)+x2.bandwidth()/2)
-        .attr("y",d=> y2(d.mpg)-8)
+        .attr("x",d=>x2(d.label)+x2.bandwidth()/2)
+        .attr("y",d=>y2(d.mpg)-8)
         .attr("text-anchor","middle")
         .text(d=>d.mpg.toFixed(1));
 
+      // Back button
       d3.select("#vis").append("button")
         .text("Back to Makes")
-        .on("click",()=>{
+        .on("click", () => {
           d3.select(".scene-nav").style("display",null);
           updateScene();
         });
     }
 
-    function updateScene(){
+    // Render based on scene
+    function updateScene() {
       d3.select("#vis").html("");
       d3.select(".scene-nav").style("display",null);
       scenes[scene]();
     }
 
-    d3.select("#prev").on("click",()=>{ if(scene>0){scene--;updateScene();} });
-    d3.select("#next").on("click",()=>{ if(scene<scenes.length-1){scene++;updateScene();} });
+    // Button handlers
+    d3.select("#prev").on("click",()=>{ if(scene>0){scene--;updateScene();}});  
+    d3.select("#next").on("click",()=>{ if(scene<scenes.length-1){scene++;updateScene();}});
   </script>
 </body>
 </html>
