@@ -20,223 +20,193 @@
     <span id="scene-label"></span>
     <button id="next">Next</button>
   </div>
-
   <script>
-  // Main parameters
-  let scene = 0, makes, topMakes;
-  const scenes = [drawScene0, drawScene1, drawScene2];
-  const w = 1200, h = 550, mT = 50, mB = 130, mL = 90, mR = 90;
+    let scene = 0, makes, topMakes;
+    const scenes = [drawScene0, drawScene1, drawScene2];
+    const w = 1200, h = 550, mT=50, mB=130, mL=90, mR=90;
 
-  // Load data
-  d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
-    makes = d3.groups(raw, d => d.Make).map(([make, cars]) => ({
-      make,
-      avgMPG: d3.mean(cars, d => (+d.AverageCityMPG + +d.AverageHighwayMPG)/2),
-      models: cars
-    })).sort((a,b) => d3.descending(a.avgMPG, b.avgMPG));
-    topMakes = makes.slice(0,3).map(d => d.make);
-    updateScene();
-  });
-
-  // Scene 1: Overview
-  function drawScene0() {
-    d3.select("#scene-label").text("Scene 1: Average MPG by Make");
-    const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
-    const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL, w-mR]).padding(0.2);
-    const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB, mT]);
-
-    svg.selectAll("rect.bar").data(makes).join("rect")
-      .attr("class","bar")
-      .attr("x", d=> x(d.make))
-      .attr("y", d=> y(d.avgMPG))
-      .attr("width", x.bandwidth())
-      .attr("height", d=> y(0)-y(d.avgMPG));
-
-    svg.append("g")
-      .attr("class","x-axis-labels")
-      .attr("transform", `translate(0,${h-mB})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0))
-      .selectAll("text")
-        .attr("transform","rotate(-65)")
-        .attr("dx","-0.8em")
-        .attr("dy","0.15em")
-        .style("text-anchor","end");
-
-    svg.append("g")
-      .attr("transform", `translate(${mL},0)`)
-      .call(d3.axisLeft(y));
-
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2)
-      .attr("text-anchor","middle").attr("font-size","18px")
-      .text("Average Fuel Efficiency (MPG) by Car Make");
-
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2 + 22)
-      .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-      .text("Use the Next/Previous buttons below to explore the story.");
-  }
-
-  // Scene 2: Highlight top 3
-  function drawScene1() {
-    d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
-    const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
-    const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL, w-mR]).padding(0.2);
-    const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB, mT]);
-
-    svg.selectAll("rect.bar").data(makes).join("rect")
-      .attr("class", d => topMakes.includes(d.make) ? "bar highlight" : "bar")
-      .attr("x", d=> x(d.make))
-      .attr("y", d=> y(d.avgMPG))
-      .attr("width", x.bandwidth())
-      .attr("height", d=> y(0)-y(d.avgMPG));
-
-    svg.append("g")
-      .attr("class","x-axis-labels")
-      .attr("transform", `translate(0,${h-mB})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0))
-      .selectAll("text")
-        .attr("transform","rotate(-65)")
-        .attr("dx","-0.8em")
-        .attr("dy","0.15em")
-        .style("text-anchor","end");
-
-    svg.append("g")
-      .attr("transform", `translate(${mL},0)`)
-      .call(d3.axisLeft(y));
-
-    // Annotate top 3
-    makes.slice(0,3).forEach((d,i) => {
-      svg.append("text")
-        .attr("x", x(d.make) + x.bandwidth()/2)
-        .attr("y", y(d.avgMPG)-10)
-        .attr("class","annotation")
-        .attr("text-anchor","middle")
-        .text(`#${i+1}`);
+    d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
+      makes = d3.groups(raw, d=>d.Make).map(([make,cars])=>({
+        make,
+        avgMPG: d3.mean(cars, d=>(+d.AverageCityMPG + +d.AverageHighwayMPG)/2),
+        models: cars
+      })).sort((a,b)=>d3.descending(a.avgMPG,b.avgMPG));
+      topMakes = makes.slice(0,3).map(d=>d.make);
+      updateScene();
     });
 
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2)
-      .attr("text-anchor","middle").attr("font-size","18px")
-      .text("The Top 3 Fuel Efficient Car Makes");
+    function drawScene0(){
+      d3.select("#scene-label").text("Scene 1: Average MPG by Make");
+      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
 
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2 + 22)
-      .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-      .text("The top three makes are highlighted and labeled below.");
-  }
+      svg.selectAll("rect.bar").data(makes).join("rect")
+        .attr("class","bar")
+        .attr("x",d=>x(d.make))
+        .attr("y",d=>y(d.avgMPG))
+        .attr("width",x.bandwidth())
+        .attr("height",d=>y(0)-y(d.avgMPG));
 
-  // Scene 3: Drill-down
-  function drawScene2() {
-    d3.select("#scene-label").text("Scene 3: Drill Down by Make");
-    const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
-    const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL, w-mR]).padding(0.2);
-    const y = d3.scaleLinear().domain([0, d3.max(makes,d=>d.avgMPG)]).range([h-mB, mT]);
+      svg.append("g").attr("class","x-axis-labels")
+        .attr("transform",`translate(0,${h-mB})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+          .attr("transform","rotate(-65)")
+          .attr("dx","-0.8em")
+          .attr("dy","0.15em")
+          .style("text-anchor","end");
 
-    svg.selectAll("rect.bar").data(makes).join("rect")
-      .attr("class","bar")
-      .attr("x", d=> x(d.make))
-      .attr("y", d=> y(d.avgMPG))
-      .attr("width", x.bandwidth())
-      .attr("height", d=> y(0)-y(d.avgMPG))
-      .on("click", (e,d) => showModels(d));
+      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
 
-    svg.append("g")
-      .attr("class","x-axis-labels")
-      .attr("transform", `translate(0,${h-mB})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0))
-      .selectAll("text")
-        .attr("transform","rotate(-65)")
-        .attr("dx","-0.8em")
-        .attr("dy","0.15em")
-        .style("text-anchor","end");
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2).attr("text-anchor","middle").attr("font-size","18px")
+        .text("Average Fuel Efficiency (MPG) by Car Make");
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .text("Use Next/Previous to explore.");
+    }
 
-    svg.append("g")
-      .attr("transform", `translate(${mL},0)`)
-      .call(d3.axisLeft(y));
+    function drawScene1(){
+      d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
+      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
 
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2)
-      .attr("text-anchor","middle").attr("font-size","18px")
-      .text("Click a Make to See Its Models");
+      svg.selectAll("rect.bar").data(makes).join("rect")
+        .attr("class",d=> topMakes.includes(d.make)?"bar highlight":"bar")
+        .attr("x",d=>x(d.make))
+        .attr("y",d=>y(d.avgMPG))
+        .attr("width",x.bandwidth())
+        .attr("height",d=>y(0)-y(d.avgMPG));
 
-    svg.append("text")
-      .attr("x", w/2).attr("y", mT/2 + 22)
-      .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-      .text("Click any bar to drill down and see individual models.");
-  }
+      svg.append("g").attr("class","x-axis-labels")
+        .attr("transform",`translate(0,${h-mB})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+          .attr("transform","rotate(-65)")
+          .attr("dx","-0.8em")
+          .attr("dy","0.15em")
+          .style("text-anchor","end");
 
-  // Drill-down renderer
-  function showModels(makeObj) {
-    d3.select(".scene-nav").style("display","none");
-    d3.select("#vis").html("");
+      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
 
-    // Drill dimensions
-    const w2 = 1200, h2 = 500, mT2 = 50, mB2 = 130, mL2 = 140, mR2 = 140;
-    const svg = d3.select("#vis").append("svg").attr("width",w2).attr("height",h2);
-
-    let models = makeObj.models.map((d,i) => ({
-      label: `${d.Model} (${d.EngineCylinders} cyl, ${i})`,
-      mpg: (+d.AverageCityMPG + +d.AverageHighwayMPG)/2
-    })).sort((a,b)=>d3.descending(a.mpg,b.mpg));
-
-    const x2 = d3.scaleBand().domain(models.map(d=>d.label)).range([mL2,w2-mR2]).padding(0.2);
-    const y2 = d3.scaleLinear().domain([0,d3.max(models,d=>d.mpg)]).range([h2-mB2,mT2]);
-
-    svg.selectAll("rect").data(models).join("rect")
-      .attr("x", d=> x2(d.label))
-      .attr("y", d=> y2(d.mpg))
-      .attr("width", x2.bandwidth())
-      .attr("height", d=> y2(0)-y2(d.mpg))
-      .attr("fill","teal");
-
-    svg.append("g")
-      .attr("transform",`translate(0,${h2-mB2})`)
-      .call(d3.axisBottom(x2).tickSizeOuter(0))
-      .selectAll("text")
-        .attr("transform","rotate(-65)")
-        .attr("dx","-0.8em")
-        .attr("dy","0.15em")
-        .style("text-anchor","end");
-
-    svg.append("g")
-      .attr("transform",`translate(${mL2},0)`)
-      .call(d3.axisLeft(y2));
-
-    svg.append("text")
-      .attr("x",w2/2).attr("y",mT2/2).attr("text-anchor","middle").attr("font-size","18px")
-      .text(`Models for ${makeObj.make} (Avg MPG)`);
-
-    svg.append("text")
-      .attr("x",w2/2).attr("y",mT2/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-      .text("Each bar shows the average MPG for a model.");
-
-    svg.selectAll("text.mpg-label").data(models).join("text")
-      .attr("class","mpg-label")
-      .attr("x", d=> x2(d.label)+x2.bandwidth()/2)
-      .attr("y", d=> y2(d.mpg)-8)
-      .attr("text-anchor","middle")
-      .text(d=> d.mpg.toFixed(1));
-
-    // Back button
-    d3.select("#vis").append("button")
-      .text("Back to Makes")
-      .on("click", () => {
-        d3.select(".scene-nav").style("display",null);
-        updateScene();
+      makes.slice(0,3).forEach((d,i)=>{
+        svg.append("text")
+          .attr("x",x(d.make)+x.bandwidth()/2)
+          .attr("y",y(d.avgMPG)-10)
+          .attr("class","annotation")
+          .attr("text-anchor","middle")
+          .text(`#${i+1}`);
       });
-  }
 
-  // Redraw based on `scene`
-  function updateScene() {
-    d3.select("#vis").html("");
-    d3.select(".scene-nav").style("display",null);
-    scenes[scene]();
-  }
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2).attr("text-anchor","middle").attr("font-size","18px")
+        .text("Top 3 Fuel Efficient Makes");
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .text("Highlighted and ranked.");
+    }
 
-  // Navigation
-  d3.select("#prev").on("click", ()=>{ if(scene>0){scene--;updateScene();} });
-  d3.select("#next").on("click", ()=>{ if(scene<scenes.length-1){scene++;updateScene();} });
+    function drawScene2(){
+      d3.select("#scene-label").text("Scene 3: Drill Down by Make");
+      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+
+      svg.selectAll("rect.bar").data(makes).join("rect")
+        .attr("class","bar")
+        .attr("x",d=>x(d.make))
+        .attr("y",d=>y(d.avgMPG))
+        .attr("width",x.bandwidth())
+        .attr("height",d=>y(0)-y(d.avgMPG))
+        .on("click",(e,d)=>showModels(d));
+
+      svg.append("g").attr("class","x-axis-labels")
+        .attr("transform",`translate(0,${h-mB})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+          .attr("transform","rotate(-65)")
+          .attr("dx","-0.8em")
+          .attr("dy","0.15em")
+          .style("text-anchor","end");
+
+      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
+
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2).attr("text-anchor","middle").attr("font-size","18px")
+        .text("Click a Make to See Its Models");
+      svg.append("text")
+        .attr("x",w/2).attr("y",mT/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .text("Drill down for individual models.");
+    }
+
+    function showModels(makeObj){
+      d3.select(".scene-nav").style("display","none");
+      d3.select("#vis").html("");
+
+      const w2=1200,h2=500,mT2=50,mB2=130,mL2=140,mR2=140;
+      const svg=d3.select("#vis").append("svg").attr("width",w2).attr("height",h2);
+
+      // map models, ensure uniqueness by index
+      let models = makeObj.models.map((d,i)=>({
+        model: d.Model,
+        mpg: (+d.AverageCityMPG + +d.AverageHighwayMPG)/2,
+        label: `${d.Model} (${i})`
+      })).sort((a,b)=>d3.descending(a.mpg,b.mpg));
+
+      const x2=d3.scaleBand().domain(models.map(d=>d.label)).range([mL2,w2-mR2]).padding(0.2);
+      const y2=d3.scaleLinear().domain([0,d3.max(models,d=>d.mpg)]).range([h2-mB2,mT2]);
+
+      svg.selectAll("rect").data(models).join("rect")
+        .attr("x",d=>x2(d.label))
+        .attr("y",d=>y2(d.mpg))
+        .attr("width",x2.bandwidth())
+        .attr("height",d=>y2(0)-y2(d.mpg))
+        .attr("fill","teal");
+
+      svg.append("g")
+        .attr("transform",`translate(0,${h2-mB2})`)
+        .call(d3.axisBottom(x2).tickSizeOuter(0))
+        .selectAll("text")
+          .attr("transform","rotate(-65)")
+          .attr("dx","-0.8em")
+          .attr("dy","0.15em")
+          .style("text-anchor","end");
+
+      svg.append("g").attr("transform",`translate(${mL2},0)`).call(d3.axisLeft(y2));
+
+      svg.append("text")
+        .attr("x",w2/2).attr("y",mT2/2).attr("text-anchor","middle").attr("font-size","18px")
+        .text(`Models for ${makeObj.make} (Avg MPG)`);
+
+      svg.append("text")
+        .attr("x",w2/2).attr("y",mT2/2+22).attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .text("Each bar shows the average MPG.");
+
+      svg.selectAll("text.mpg-label").data(models).join("text")
+        .attr("class","mpg-label")
+        .attr("x",d=> x2(d.label)+x2.bandwidth()/2)
+        .attr("y",d=> y2(d.mpg)-8)
+        .attr("text-anchor","middle")
+        .text(d=>d.mpg.toFixed(1));
+
+      d3.select("#vis").append("button")
+        .text("Back to Makes")
+        .on("click",()=>{
+          d3.select(".scene-nav").style("display",null);
+          updateScene();
+        });
+    }
+
+    function updateScene(){
+      d3.select("#vis").html("");
+      d3.select(".scene-nav").style("display",null);
+      scenes[scene]();
+    }
+
+    d3.select("#prev").on("click",()=>{ if(scene>0){scene--;updateScene();} });
+    d3.select("#next").on("click",()=>{ if(scene<scenes.length-1){scene++;updateScene();} });
   </script>
 </body>
 </html>
