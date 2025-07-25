@@ -5,7 +5,7 @@
   <title>Car Makes: Fuel Efficiency (2017)</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
-    .annotation { fill: rgb(161, 2, 2); font-size: 14px; font-weight: bold; }
+    .annotation { fill: rgb(161, 2, 2); font-size: 16px; font-weight: bold; }
     .bar { fill: rgb(80, 147, 201); }
     .highlight { fill: rgb(249, 169, 21); }
   </style>
@@ -41,7 +41,7 @@
       const w=700, h=400, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.1);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
       const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
 
       svg.selectAll("rect.bar").data(makes)
@@ -73,7 +73,7 @@
       const w=700, h=400, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.1);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
       const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
 
       svg.selectAll("rect.bar").data(makes)
@@ -111,12 +111,12 @@
 
     function drawScene2() {
       d3.select("#scene-label").text("Scene 3: Drill Down by their Make");
-      const w=700, h=400, margin=50;
+      const w=800, h=500, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
 
       // Prompt: click a bar to drill down (reuse previous chart)
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.1);
+      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
       const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
       svg.selectAll("rect.bar").data(makes)
         .join("rect")
@@ -139,7 +139,7 @@
 
       svg.append("text").attr("x", w/2).attr("y", margin/2)
         .attr("text-anchor","middle").attr("font-size", "18px")
-        .text("Click a Make to See It's Models");
+        .text("Click a Make to See the Models");
     }
 
     function showModels(makeObj) {
@@ -152,7 +152,7 @@
         mpg: ((+d.AverageCityMPG + +d.AverageHighwayMPG)/2)
       }));
       models = models.sort((a,b)=>d3.descending(a.mpg, b.mpg));
-      const x = d3.scaleBand().domain(models.map(d=>d.model)).range([margin,w-margin]).padding(0.1);
+      const x = d3.scaleBand().domain(models.map(d=>d.model)).range([margin,w-margin]).padding(0.2);
       const y = d3.scaleLinear().domain([0, d3.max(models, d=>d.mpg)]).range([h-margin,margin]);
 
       svg.selectAll("rect").data(models)
