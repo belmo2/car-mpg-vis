@@ -1,329 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Car Makes: Fuel Efficiency (2017)</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    .annotation { fill: rgb(161, 2, 2); font-size: 16px; font-weight: bold; }
-    .bar { fill: rgb(80, 147, 201); }
-    .highlight { fill: rgb(249, 169, 21); }
-    .x-axis-labels text { font-size: 12px; }
-    .mpg-label { font-size: 11px; fill: #222; }
-    .scene-nav { margin: 1em 0 0.5em 0; }
-  </style>
-</head>
-<body>
-  <div id="vis"></div>
-  <div class="scene-nav">
-    <button id="prev">Previous</button>
-    <span id="scene-label"></span>
-    <button id="next">Next</button>
-  </div>
-  <script>
-    let scene = 0, data, makes, topMakes;
-    const scenes = [drawScene0, drawScene1, drawScene2];
-    // Main chart dimensions
-    const w = 1200, h = 550, marginTop = 50, marginBottom = 130, marginLeft = 90, marginRight = 90;
+function showModels(makeObj) {
+  d3.select("#vis").html(""); // Clear
+  d3.select(".scene-nav").style("display", "none"); // Hide navigation in drill-down
 
-    d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
-      // Compute avg MPG per make
-      makes = d3.groups(raw, d => d.Make)
-        .map(([make, cars]) => ({
-          make: make,
-          avgMPG: d3.mean(cars, d => (+d.AverageCityMPG + +d.AverageHighwayMPG) / 2),
-          models: cars
-        }))
-        .sort((a, b) => d3.descending(a.avgMPG, b.avgMPG));
-      topMakes = makes.slice(0, 3).map(d => d.make);
-      data = raw;
+  const w2 = 1200, h2 = 500, marginTop2 = 50, marginBottom2 = 130, marginLeft2 = 140, marginRight2 = 140;
+  const svg = d3.select("#vis").append("svg")
+    .attr("width", w2).attr("height", h2);
+
+  // Use a unique label for each model: Model name + engine + index
+  let models = makeObj.models.map((d, i) => ({
+    model: d.Model,
+    mpg: ((+d.AverageCityMPG + +d.AverageHighwayMPG) / 2),
+    label: d.Model + " (" + d.EngineCylinders + " cyl, " + i + ")"
+  }));
+
+  models = models.sort((a, b) => d3.descending(a.mpg, b.mpg));
+
+  const x = d3.scaleBand()
+    .domain(models.map(d => d.label))
+    .range([marginLeft2, w2 - marginRight2])
+    .padding(0.2);
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(models, d => d.mpg)])
+    .range([h2 - marginBottom2, marginTop2]);
+
+  svg.selectAll("rect")
+    .data(models)
+    .join("rect")
+    .attr("x", d => x(d.label))
+    .attr("y", d => y(d.mpg))
+    .attr("width", x.bandwidth())
+    .attr("height", d => y(0) - y(d.mpg))
+    .attr("fill", "teal");
+
+  svg.append("g")
+    .attr("class", "x-axis-labels")
+    .attr("transform", `translate(0,${h2 - marginBottom2})`)
+    .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
+    .selectAll("text")
+    .attr("transform", "rotate(-65)")
+    .attr("dx", "-0.8em")
+    .attr("dy", "0.15em")
+    .style("text-anchor", "end")
+    .style("font-size", "12px");
+
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft2},0)`)
+    .call(d3.axisLeft(y));
+
+  svg.append("text")
+    .attr("x", w2 / 2)
+    .attr("y", marginTop2 / 2)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "18px")
+    .text(`Models for ${makeObj.make} (Avg MPG)`);
+
+  svg.append("text")
+    .attr("x", w2 / 2)
+    .attr("y", marginTop2 / 2 + 22)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "14px")
+    .attr("fill", "#444")
+    .text("Each bar shows the average MPG for a model.");
+
+  // Show MPG on top of each bar
+  svg.selectAll("text.mpg-label")
+    .data(models)
+    .join("text")
+    .attr("class", "mpg-label")
+    .attr("x", d => x(d.label) + x.bandwidth() / 2)
+    .attr("y", d => y(d.mpg) - 8)
+    .attr("text-anchor", "middle")
+    .text(d => d.mpg ? d.mpg.toFixed(1) : "");
+
+  // Add back button
+  d3.select("#vis").append("button")
+    .text("Back to Makes")
+    .on("click", () => {
       updateScene();
+      d3.select(".scene-nav").style("display", null); // Show navigation again
     });
-
-    function drawScene0() {
-      d3.select("#scene-label").text("Scene 1: Average MPG by Make");
-      const svg = d3.select("#vis").append("svg")
-        .attr("width", w).attr("height", h);
-
-      const x = d3.scaleBand()
-        .domain(makes.map(d => d.make))
-        .range([marginLeft, w - marginRight])
-        .padding(0.2);
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(makes, d => d.avgMPG)])
-        .range([h - marginBottom, marginTop]);
-
-      svg.selectAll("rect.bar").data(makes)
-        .join("rect")
-        .attr("class", "bar")
-        .attr("x", d => x(d.make))
-        .attr("y", d => y(d.avgMPG))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d.avgMPG));
-
-      svg.append("g")
-        .attr("class", "x-axis-labels")
-        .attr("transform", `translate(0,${h - marginBottom})`)
-        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
-        .selectAll("text")
-        .attr("transform", "rotate(-65)")
-        .attr("dx", "-0.8em")
-        .attr("dy", "0.15em")
-        .style("text-anchor", "end")
-        .style("font-size", "12px");
-
-      svg.append("g")
-        .attr("transform", `translate(${marginLeft},0)`)
-        .call(d3.axisLeft(y));
-
-      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
-        .attr("text-anchor", "middle").attr("font-size", "18px")
-        .text("Average Fuel Efficiency (MPG) by Car Make");
-
-      svg.append("text")
-        .attr("x", w / 2)
-        .attr("y", marginTop / 2 + 22)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "14px")
-        .attr("fill", "#444")
-        .text("Use the Next/Previous buttons below to explore the story.");
-    }
-
-    function drawScene1() {
-      d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
-      const svg = d3.select("#vis").append("svg")
-        .attr("width", w).attr("height", h);
-
-      const x = d3.scaleBand()
-        .domain(makes.map(d => d.make))
-        .range([marginLeft, w - marginRight])
-        .padding(0.2);
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(makes, d => d.avgMPG)])
-        .range([h - marginBottom, marginTop]);
-
-      svg.selectAll("rect.bar").data(makes)
-        .join("rect")
-        .attr("class", d => topMakes.includes(d.make) ? "bar highlight" : "bar")
-        .attr("x", d => x(d.make))
-        .attr("y", d => y(d.avgMPG))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d.avgMPG));
-
-      svg.append("g")
-        .attr("class", "x-axis-labels")
-        .attr("transform", `translate(0,${h - marginBottom})`)
-        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
-        .selectAll("text")
-        .attr("transform", "rotate(-65)")
-        .attr("dx", "-0.8em")
-        .attr("dy", "0.15em")
-        .style("text-anchor", "end")
-        .style("font-size", "12px");
-
-      svg.append("g")
-        .attr("transform", `translate(${marginLeft},0)`)
-        .call(d3.axisLeft(y));
-
-      // Annotations for top 3
-      makes.slice(0, 3).forEach((d, i) => {
-        svg.append("text")
-          .attr("x", x(d.make) + x.bandwidth() / 2)
-          .attr("y", y(d.avgMPG) - 10)
-          .attr("text-anchor", "middle")
-          .attr("class", "annotation")
-          .text(`#${i + 1}`);
-      });
-
-      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
-        .attr("text-anchor", "middle").attr("font-size", "18px")
-        .text("The Top 3 Fuel Efficient Car Makes");
-
-      svg.append("text")
-        .attr("x", w / 2)
-        .attr("y", marginTop / 2 + 22)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "14px")
-        .attr("fill", "#444")
-        .text("The top three makes are highlighted and labeled below.");
-    }
-
-    function drawScene2() {
-      d3.select("#scene-label").text("Scene 3: Drill Down by Make");
-      const svg = d3.select("#vis").append("svg")
-        .attr("width", w).attr("height", h);
-
-      const x = d3.scaleBand()
-        .domain(makes.map(d => d.make))
-        .range([marginLeft, w - marginRight])
-        .padding(0.2);
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(makes, d => d.avgMPG)])
-        .range([h - marginBottom, marginTop]);
-
-      svg.selectAll("rect.bar").data(makes)
-        .join("rect")
-        .attr("class", "bar")
-        .attr("x", d => x(d.make))
-        .attr("y", d => y(d.avgMPG))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d.avgMPG))
-        .on("click", (event, d) => showModels(d));
-
-      svg.append("g")
-        .attr("class", "x-axis-labels")
-        .attr("transform", `translate(0,${h - marginBottom})`)
-        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
-        .selectAll("text")
-        .attr("transform", "rotate(-65)")
-        .attr("dx", "-0.8em")
-        .attr("dy", "0.15em")
-        .style("text-anchor", "end")
-        .style("font-size", "12px");
-
-      svg.append("g")
-        .attr("transform", `translate(${marginLeft},0)`)
-        .call(d3.axisLeft(y));
-
-      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
-        .attr("text-anchor", "middle").attr("font-size", "18px")
-        .text("Click a Make to See Its Models");
-
-      svg.append("text")
-        .attr("x", w / 2)
-        .attr("y", marginTop / 2 + 22)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "14px")
-        .attr("fill", "#444")
-        .text("Click any bar to drill down and see individual models.");
-    }
-
-    function showModels(makeObj) {
-      d3.select("#vis").html(""); // Clear
-      // Wider SVG for model labels
-      const w2 = 1200, h2 = 500, marginTop2 = 50, marginBottom2 = 130, marginLeft2 = 140, marginRight2 = 140;
-      const svg = d3.select("#vis").append("svg")
-        .attr("width", w2).attr("height", h2);
-
-      // Add an index to duplicate models to make x-domain unique
-      let models = makeObj.models.map((d, i) => ({
-        model: d.Model,
-        mpg: ((+d.AverageCityMPG + +d.AverageHighwayMPG) / 2),
-        label: d.Model // default label
-      }));
-
-      // Ensure uniqueness: add index to model name if there are duplicates
-      const nameCount = {};
-      models.forEach(m => {
-        if (!nameCount[m.model]) nameCount[m.model] = 0;
-        else nameCount[m.model]++;
-        // If duplicate, add index
-        m.label = nameCount[m.model] > 0 ? `${m.model} (${nameCount[m.model]})` : m.model;
-      });
-
-      models = models.sort((a, b) => d3.descending(a.mpg, b.mpg));
-
-      const x = d3.scaleBand()
-        .domain(models.map(d => d.label))
-        .range([marginLeft2, w2 - marginRight2])
-        .padding(0.2);
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(models, d => d.mpg)])
-        .range([h2 - marginBottom2, marginTop2]);
-
-      svg.selectAll("rect")
-        .data(models)
-        .join("rect")
-        .attr("x", d => x(d.label))
-        .attr("y", d => y(d.mpg))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d.mpg))
-        .attr("fill", "teal");
-
-      svg.append("g")
-        .attr("class", "x-axis-labels")
-        .attr("transform", `translate(0,${h2 - marginBottom2})`)
-        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
-        .selectAll("text")
-        .attr("transform", "rotate(-65)")
-        .attr("dx", "-0.8em")
-        .attr("dy", "0.15em")
-        .style("text-anchor", "end")
-        .style("font-size", "12px");
-
-      svg.append("g")
-        .attr("transform", `translate(${marginLeft2},0)`)
-        .call(d3.axisLeft(y));
-
-      svg.append("text")
-        .attr("x", w2 / 2)
-        .attr("y", marginTop2 / 2)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "18px")
-        .text(`Models for ${makeObj.make} (Avg MPG)`);
-
-      svg.append("text")
-        .attr("x", w2 / 2)
-        .attr("y", marginTop2 / 2 + 22)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "14px")
-        .attr("fill", "#444")
-        .text("Each bar shows the average MPG for a model.");
-
-      // Show MPG on top of each bar
-      svg.selectAll("text.mpg-label")
-        .data(models)
-        .join("text")
-        .attr("class", "mpg-label")
-        .attr("x", d => x(d.label) + x.bandwidth() / 2)
-        .attr("y", d => y(d.mpg) - 8)
-        .attr("text-anchor", "middle")
-        .text(d => d.mpg ? d.mpg.toFixed(1) : "");
-
-      // Add back button
-      d3.select("#vis").append("button")
-        .text("Back to Makes")
-        .on("click", () => updateScene());
-    }
-
-    function updateScene() {
-      d3.select("#vis").html("");
-      scenes[scene]();
-    }
-
-    d3.select("#prev").on("click", () => { if (scene > 0) { scene--; updateScene(); } });
-    d3.select("#next").on("click", () => { if (scene < scenes.length - 1) { scene++; updateScene(); } });
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Car Makes: Fuel Efficiency (2017)</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    .annotation { fill: rgb(161, 2, 2); font-size: 16px; font-weight: bold; }
-    .bar { fill: rgb(80, 147, 201); }
-    .highlight { fill: rgb(249, 169, 21); }
-    .x-axis-labels text { font-size: 12px; }
-    .mpg-label { font-size: 11px; fill: #222; }
-    .scene-nav { margin: 1em 0 0.5em 0; }
-  </style>
-</head>
-<body>
-  <div id="vis"></div>
-  <div class="scene-nav">
-    <button id="prev">Previous</button>
-    <span id="scene-label"></span>
-    <button id="next">Next</button>
-  </div>
-  <script>
-    let scene = 0, data, makes, topMakes;
-    const scenes = [drawScene0, drawScene1, drawScene2];
-    // Main chart dimensions
-    const w = 1200, h = 550, marginTop = 50, marginBottom = 130, marginLeft = 90, marginRight = 90;
-
-    d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
-      // Compute avg MPG per make
-      makes = d3.groups(raw, d
+}
