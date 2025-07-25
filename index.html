@@ -20,6 +20,8 @@
   <script>
     let scene = 0, data, makes, topMakes;
     const scenes = [drawScene0, drawScene1, drawScene2];
+    // Margin settings for all scenes
+    const w = 800, h = 550, marginTop = 50, marginBottom = 130, marginLeft = 60, marginRight = 40;
 
     d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
       // Compute avg MPG per make
@@ -37,144 +39,175 @@
 
     function drawScene0() {
       d3.select("#scene-label").text("Scene 1: Average MPG by their Make");
-      // Bar chart: all makes, avg MPG
-      const w=700, h=400, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
-      const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
+
+      const x = d3.scaleBand()
+        .domain(makes.map(d => d.make))
+        .range([marginLeft, w - marginRight])
+        .padding(0.2);
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(makes, d => d.avgMPG)])
+        .range([h - marginBottom, marginTop]);
 
       svg.selectAll("rect.bar").data(makes)
         .join("rect")
         .attr("class", "bar")
-        .attr("x", d=>x(d.make))
-        .attr("y", d=>y(d.avgMPG))
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
         .attr("width", x.bandwidth())
-        .attr("height", d=>y(0)-y(d.avgMPG));
+        .attr("height", d => y(0) - y(d.avgMPG));
 
       svg.append("g")
-        .attr("transform", `translate(0,${h-margin})`)
-        .call(d3.axisBottom(x).tickFormat(d=>d).tickSizeOuter(0))
+        .attr("transform", `translate(0,${h - marginBottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
         .selectAll("text")
-        .attr("transform", "rotate(-65)").style("text-anchor","end");
+        .attr("transform", "rotate(-65)")
+        .attr("dx", "-0.8em")
+        .attr("dy", "0.15em")
+        .style("text-anchor", "end");
 
       svg.append("g")
-        .attr("transform", `translate(${margin},0)`)
+        .attr("transform", `translate(${marginLeft},0)`)
         .call(d3.axisLeft(y));
 
-      svg.append("text").attr("x", w/2).attr("y", margin/2)
-        .attr("text-anchor","middle").attr("font-size", "18px")
+      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("Average Fuel Efficiency (MPG) by the Car Make");
     }
 
     function drawScene1() {
       d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
-      // Same as above, but highlight the top 3 and annotate them
-      const w=700, h=400, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
-      const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
+
+      const x = d3.scaleBand()
+        .domain(makes.map(d => d.make))
+        .range([marginLeft, w - marginRight])
+        .padding(0.2);
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(makes, d => d.avgMPG)])
+        .range([h - marginBottom, marginTop]);
 
       svg.selectAll("rect.bar").data(makes)
         .join("rect")
-        .attr("class", d=> topMakes.includes(d.make) ? "bar highlight" : "bar")
-        .attr("x", d=>x(d.make))
-        .attr("y", d=>y(d.avgMPG))
+        .attr("class", d => topMakes.includes(d.make) ? "bar highlight" : "bar")
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
         .attr("width", x.bandwidth())
-        .attr("height", d=>y(0)-y(d.avgMPG));
+        .attr("height", d => y(0) - y(d.avgMPG));
 
       svg.append("g")
-        .attr("transform", `translate(0,${h-margin})`)
-        .call(d3.axisBottom(x).tickFormat(d=>d).tickSizeOuter(0))
+        .attr("transform", `translate(0,${h - marginBottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
         .selectAll("text")
-        .attr("transform", "rotate(-65)").style("text-anchor","end");
+        .attr("transform", "rotate(-65)")
+        .attr("dx", "-0.8em")
+        .attr("dy", "0.15em")
+        .style("text-anchor", "end");
 
       svg.append("g")
-        .attr("transform", `translate(${margin},0)`)
+        .attr("transform", `translate(${marginLeft},0)`)
         .call(d3.axisLeft(y));
 
       // Annotations for top 3
-      makes.slice(0,3).forEach((d,i) => {
+      makes.slice(0, 3).forEach((d, i) => {
         svg.append("text")
-          .attr("x", x(d.make) + x.bandwidth()/2)
-          .attr("y", y(d.avgMPG)-10)
+          .attr("x", x(d.make) + x.bandwidth() / 2)
+          .attr("y", y(d.avgMPG) - 10)
           .attr("text-anchor", "middle")
           .attr("class", "annotation")
-          .text(`#${i+1}`);
+          .text(`#${i + 1}`);
       });
 
-      svg.append("text").attr("x", w/2).attr("y", margin/2)
-        .attr("text-anchor","middle").attr("font-size", "18px")
+      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("The Top 3 Fuel Efficient Car Makes");
     }
 
     function drawScene2() {
       d3.select("#scene-label").text("Scene 3: Drill Down by their Make");
-      const w=800, h=500, margin=50;
       const svg = d3.select("#vis").append("svg")
         .attr("width", w).attr("height", h);
 
-      // Prompt: click a bar to drill down (reuse previous chart)
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([margin,w-margin]).padding(0.2);
-      const y = d3.scaleLinear().domain([0, d3.max(makes, d=>d.avgMPG)]).range([h-margin,margin]);
+      const x = d3.scaleBand()
+        .domain(makes.map(d => d.make))
+        .range([marginLeft, w - marginRight])
+        .padding(0.2);
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(makes, d => d.avgMPG)])
+        .range([h - marginBottom, marginTop]);
+
       svg.selectAll("rect.bar").data(makes)
         .join("rect")
         .attr("class", "bar")
-        .attr("x", d=>x(d.make))
-        .attr("y", d=>y(d.avgMPG))
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
         .attr("width", x.bandwidth())
-        .attr("height", d=>y(0)-y(d.avgMPG))
+        .attr("height", d => y(0) - y(d.avgMPG))
         .on("click", (event, d) => showModels(d));
 
       svg.append("g")
-        .attr("transform", `translate(0,${h-margin})`)
-        .call(d3.axisBottom(x).tickFormat(d=>d).tickSizeOuter(0))
+        .attr("transform", `translate(0,${h - marginBottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d).tickSizeOuter(0))
         .selectAll("text")
-        .attr("transform", "rotate(-65)").style("text-anchor","end");
+        .attr("transform", "rotate(-65)")
+        .attr("dx", "-0.8em")
+        .attr("dy", "0.15em")
+        .style("text-anchor", "end");
 
       svg.append("g")
-        .attr("transform", `translate(${margin},0)`)
+        .attr("transform", `translate(${marginLeft},0)`)
         .call(d3.axisLeft(y));
 
-      svg.append("text").attr("x", w/2).attr("y", margin/2)
-        .attr("text-anchor","middle").attr("font-size", "18px")
+      svg.append("text").attr("x", w / 2).attr("y", marginTop / 2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("Click a Make to See the Models");
     }
 
     function showModels(makeObj) {
       d3.select("#vis").html(""); // Clear
-      const w=600, h=400, margin=60;
+      const w2 = 650, h2 = 480, marginTop2 = 50, marginBottom2 = 130, marginLeft2 = 90, marginRight2 = 40;
       const svg = d3.select("#vis").append("svg")
-        .attr("width", w).attr("height", h);
+        .attr("width", w2).attr("height", h2);
+
       let models = makeObj.models.map(d => ({
         model: d.Model,
-        mpg: ((+d.AverageCityMPG + +d.AverageHighwayMPG)/2)
+        mpg: ((+d.AverageCityMPG + +d.AverageHighwayMPG) / 2)
       }));
-      models = models.sort((a,b)=>d3.descending(a.mpg, b.mpg));
-      const x = d3.scaleBand().domain(models.map(d=>d.model)).range([margin,w-margin]).padding(0.2);
-      const y = d3.scaleLinear().domain([0, d3.max(models, d=>d.mpg)]).range([h-margin,margin]);
+      models = models.sort((a, b) => d3.descending(a.mpg, b.mpg));
+
+      const x = d3.scaleBand()
+        .domain(models.map(d => d.model))
+        .range([marginLeft2, w2 - marginRight2])
+        .padding(0.2);
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(models, d => d.mpg)])
+        .range([h2 - marginBottom2, marginTop2]);
 
       svg.selectAll("rect").data(models)
         .join("rect")
-        .attr("x", d=>x(d.model))
-        .attr("y", d=>y(d.mpg))
+        .attr("x", d => x(d.model))
+        .attr("y", d => y(d.mpg))
         .attr("width", x.bandwidth())
-        .attr("height", d=>y(0)-y(d.mpg))
+        .attr("height", d => y(0) - y(d.mpg))
         .attr("fill", "teal");
 
       svg.append("g")
-        .attr("transform", `translate(0,${h-margin})`)
-        .call(d3.axisBottom(x).tickFormat(d=>d.model).tickSizeOuter(0))
+        .attr("transform", `translate(0,${h2 - marginBottom2})`)
+        .call(d3.axisBottom(x).tickFormat(d => d.model).tickSizeOuter(0))
         .selectAll("text")
-        .attr("transform", "rotate(-65)").style("text-anchor","end");
+        .attr("transform", "rotate(-65)")
+        .attr("dx", "-0.8em")
+        .attr("dy", "0.15em")
+        .style("text-anchor", "end");
 
       svg.append("g")
-        .attr("transform", `translate(${margin},0)`)
+        .attr("transform", `translate(${marginLeft2},0)`)
         .call(d3.axisLeft(y));
 
-      svg.append("text").attr("x", w/2).attr("y", margin/2)
-        .attr("text-anchor","middle").attr("font-size", "18px")
+      svg.append("text").attr("x", w2 / 2).attr("y", marginTop2 / 2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text(`Models for ${makeObj.make} (Avg MPG)`);
 
       // Add back button
@@ -188,8 +221,8 @@
       scenes[scene]();
     }
 
-    d3.select("#prev").on("click", () => { if(scene>0){scene--; updateScene();}});
-    d3.select("#next").on("click", () => { if(scene<scenes.length-1){scene++; updateScene();}});
+    d3.select("#prev").on("click", () => { if (scene > 0) { scene--; updateScene(); } });
+    d3.select("#next").on("click", () => { if (scene < scenes.length - 1) { scene++; updateScene(); } });
   </script>
 </body>
 </html>
