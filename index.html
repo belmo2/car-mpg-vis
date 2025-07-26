@@ -26,7 +26,11 @@
     const scenes = [drawScene0, drawScene1, drawScene2];
     const w = 1200, h = 550, mT = 50, mB = 130, mL = 90, mR = 90;
 
-    // Load & preprocess CSV once (local file)
+    // Load & preprocess CSV 
+    d3.csv("https://raw.githubusercontent.com/belmo2/car-mpg-vis/main/cars2017.csv")
+      .then(raw => { /* … */ })
+      .catch(err => console.error(err));
+
     d3.csv("cars2017.csv")
       .then(raw => {
         makes = d3.groups(raw, d => d.Make).map(([make, rows]) => ({
