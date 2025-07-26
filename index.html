@@ -26,134 +26,166 @@
     const scenes = [drawScene0, drawScene1, drawScene2];
     const w = 1200, h = 550, mT = 50, mB = 130, mL = 90, mR = 90;
 
-    // Load data
+    // Load and preprocess data
     d3.csv("https://flunky.github.io/cars2017.csv").then(raw => {
       makes = d3.groups(raw, d => d.Make).map(([make, rows]) => ({
         make,
         avgMPG: d3.mean(rows, r => (+r.AverageCityMPG + +r.AverageHighwayMPG) / 2),
         rows
-      }))
-      .sort((a,b) => d3.descending(a.avgMPG,b.avgMPG));
-      topMakes = makes.slice(0,3).map(d=>d.make);
+      })).sort((a, b) => d3.descending(a.avgMPG, b.avgMPG));
+      topMakes = makes.slice(0, 3).map(d => d.make);
       updateScene();
     });
 
-    // Scene 1
-    function drawScene0(){
+    // Scene 1: Overview
+    function drawScene0() {
       d3.select("#scene-label").text("Scene 1: Average MPG by Make");
-      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
+      const x = d3.scaleBand().domain(makes.map(d => d.make)).range([mL, w - mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0, d3.max(makes, d => d.avgMPG)]).range([h - mB, mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
-        .attr("class","bar")
-        .attr("x",d=>x(d.make))
-        .attr("y",d=>y(d.avgMPG))
-        .attr("width",x.bandwidth())
-        .attr("height",d=>y(0)-y(d.avgMPG));
+        .attr("class", "bar")
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
+        .attr("width", x.bandwidth())
+        .attr("height", d => y(0) - y(d.avgMPG));
 
-      svg.append("g").attr("class","x-axis-labels")
-        .attr("transform",`translate(0,${h-mB})`)
+      svg.append("g")
+        .attr("class", "x-axis-labels")
+        .attr("transform", `translate(0,${h - mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .selectAll("text")
-        .attr("transform","rotate(-65)")
-        .attr("dx","-0.8em")
-        .attr("dy","0.15em")
-        .style("text-anchor","end");
+          .attr("transform", "rotate(-65)")
+          .attr("dx", "-0.8em")
+          .attr("dy", "0.15em")
+          .style("text-anchor", "end");
 
-      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
+      svg.append("g")
+        .attr("transform", `translate(${mL},0)`)
+        .call(d3.axisLeft(y));
 
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2)
-        .attr("text-anchor","middle").attr("font-size","18px")
+        .attr("x", w/2).attr("y", mT/2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("Average Fuel Efficiency (MPG) by Car Make");
+
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2+22)
-        .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .attr("x", w/2).attr("y", mT/2 + 22)
+        .attr("text-anchor", "middle").attr("font-size", "14px").attr("fill", "#444")
         .text("Use Next/Previous to explore.");
     }
 
-    // Scene 2
-    function drawScene1(){
+    // Scene 2: Top 3
+    function drawScene1() {
       d3.select("#scene-label").text("Scene 2: Top 3 Fuel Efficient Makes");
-      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
+      const x = d3.scaleBand().domain(makes.map(d => d.make)).range([mL, w - mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0, d3.max(makes, d => d.avgMPG)]).range([h - mB, mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
-        .attr("class",d=> topMakes.includes(d.make)?"bar highlight":"bar")
-        .attr("x",d=>x(d.make))
-        .attr("y",d=>y(d.avgMPG))
-        .attr("width",x.bandwidth())
-        .attr("height",d=>y(0)-y(d.avgMPG));
+        .attr("class", d => topMakes.includes(d.make) ? "bar highlight" : "bar")
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
+        .attr("width", x.bandwidth())
+        .attr("height", d => y(0) - y(d.avgMPG));
 
-      svg.append("g").attr("class","x-axis-labels")
-        .attr("transform",`translate(0,${h-mB})`)
+      svg.append("g")
+        .attr("class", "x-axis-labels")
+        .attr("transform", `translate(0,${h - mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
-        .selectAll("text").attr("transform","rotate(-65)").attr("dx","-0.8em").attr("dy","0.15em").style("text-anchor","end");
+        .selectAll("text")
+          .attr("transform", "rotate(-65)")
+          .attr("dx", "-0.8em")
+          .attr("dy", "0.15em")
+          .style("text-anchor", "end");
 
-      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
+      svg.append("g")
+        .attr("transform", `translate(${mL},0)`)
+        .call(d3.axisLeft(y));
 
-      makes.slice(0,3).forEach((d,i)=>{
+      makes.slice(0, 3).forEach((d, i) => {
         svg.append("text")
-          .attr("x",x(d.make)+x.bandwidth()/2)
-          .attr("y",y(d.avgMPG)-10)
-          .attr("class","annotation")
-          .attr("text-anchor","middle")
+          .attr("x", x(d.make) + x.bandwidth()/2)
+          .attr("y", y(d.avgMPG) - 10)
+          .attr("class", "annotation")
+          .attr("text-anchor", "middle")
           .text(`#${i+1}`);
       });
 
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2)
-        .attr("text-anchor","middle").attr("font-size","18px")
+        .attr("x", w/2).attr("y", mT/2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("Top 3 Fuel Efficient Makes");
+
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2+22)
-        .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
+        .attr("x", w/2).attr("y", mT/2 + 22)
+        .attr("text-anchor", "middle").attr("font-size", "14px").attr("fill", "#444")
         .text("Highlighted and ranked.");
     }
 
-    // Scene 3: new labels
-    function drawScene2(){
+    // Scene 3: Drill‑down prompt
+    function drawScene2() {
       d3.select("#scene-label").text("Scene 3: Compare City & Highway MPG");
-      const svg = d3.select("#vis").append("svg").attr("width",w).attr("height",h);
-      const x = d3.scaleBand().domain(makes.map(d=>d.make)).range([mL,w-mR]).padding(0.2);
-      const y = d3.scaleLinear().domain([0,d3.max(makes,d=>d.avgMPG)]).range([h-mB,mT]);
+      const svg = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
+      const x = d3.scaleBand().domain(makes.map(d => d.make)).range([mL, w - mR]).padding(0.2);
+      const y = d3.scaleLinear().domain([0, d3.max(makes, d => d.avgMPG)]).range([h - mB, mT]);
 
       svg.selectAll("rect.bar").data(makes).join("rect")
-        .attr("class","bar")
-        .attr("x",d=>x(d.make))
-        .attr("y",d=>y(d.avgMPG))
-        .attr("width",x.bandwidth())
-        .attr("height",d=>y(0)-y(d.avgMPG))
-        .on("click",(e,d)=>showModels(d));
+        .attr("class", "bar")
+        .attr("x", d => x(d.make))
+        .attr("y", d => y(d.avgMPG))
+        .attr("width", x.bandwidth())
+        .attr("height", d => y(0) - y(d.avgMPG))
+        .on("click", (e, d) => showComparison(d));
 
-      svg.append("g").attr("class","x-axis-labels")
-        .attr("transform",`translate(0,${h-mB})`)
+      svg.append("g")
+        .attr("class", "x-axis-labels")
+        .attr("transform", `translate(0,${h - mB})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
-        .selectAll("text").attr("transform","rotate(-65)").attr("dx","-0.8em").attr("dy","0.15em").style("text-anchor","end");
+        .selectAll("text")
+          .attr("transform", "rotate(-65)")
+          .attr("dx", "-0.8em")
+          .attr("dy", "0.15em")
+          .style("text-anchor", "end");
 
-      svg.append("g").attr("transform",`translate(${mL},0)`).call(d3.axisLeft(y));
+      svg.append("g")
+        .attr("transform", `translate(${mL},0)`)
+        .call(d3.axisLeft(y));
 
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2)
-        .attr("text-anchor","middle").attr("font-size","18px")
+        .attr("x", w/2).attr("y", mT/2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
         .text("Click a Make to Compare Its Avg City & Hwy MPG");
+
       svg.append("text")
-        .attr("x",w/2).attr("y",mT/2+22)
-        .attr("text-anchor","middle").attr("font-size","14px").attr("fill","#444")
-        .text("Drill-down shows average city vs highway MPG for that make.");
+        .attr("x", w/2).attr("y", mT/2 + 22)
+        .attr("text-anchor", "middle").attr("font-size", "14px").attr("fill", "#444")
+        .text("Drill‑down shows average city vs highway MPG for that make.");
     }
 
-    // showModels now displays City vs Highway MPG bars
-    function showModels(makeObj){
-      d3.select(".scene-nav").style("display","none");
+    // Drill‑down: showComparison
+    function showComparison(makeObj) {
+      d3.select(".scene-nav").style("display", "none");
       d3.select("#vis").html("");
 
-      const w2=800,h2=400,mT2=50,mB2=100,mL2=100,mR2=50;
-      const svg = d3.select("#vis").append("svg").attr("width",w2).attr("height",h2);
+      const w2 = 800, h2 = 400, mT2 = 50, mB2 = 100, mL2 = 100, mR2 = 50;
+      const svg = d3.select("#vis").append("svg").attr("width", w2).attr("height", h2);
 
-      const cityAvg = d3.mean(makeObj.rows, r=>+r.AverageCityMPG);
-      const hwAvg   = d3.mean(makeObj.rows, r=>+r.AverageHighwayMPG);
+      const cityAvg = d3.mean(makeObj.rows, r => +r.AverageCityMPG);
+      const hwAvg   = d3.mean(makeObj.rows, r => +r.AverageHighwayMPG);
       const data = [
-        {type:"Ci
+        { type: "City MPG", mpg: cityAvg },
+        { type: "Highway MPG", mpg: hwAvg }
+      ];
+
+      const x2 = d3.scaleBand()
+        .domain(data.map(d => d.type))
+        .range([mL2, w2 - mR2])
+        .padding(0.4);
+
+      const y2 = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.mpg)])
+        .range([h2 - mB2, mT2]);
+
+      svg.selectAll("rec
