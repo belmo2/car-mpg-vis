@@ -35,6 +35,11 @@
       })).sort((a, b) => d3.descending(a.avgMPG, b.avgMPG));
       topMakes = makes.slice(0, 3).map(d => d.make);
       updateScene();
+
+      d3.csv("cars2017.csv")
+  .then(raw => { /* … */ })
+  .catch(err => console.error("CSV load failed:", err));
+
     });
 
     // Scene 1: Overview
@@ -233,6 +238,7 @@
     // Navigation buttons
     d3.select("#prev").on("click", () => { if (scene > 0) { scene--; updateScene(); } });
     d3.select("#next").on("click", () => { if (scene < scenes.length - 1) { scene++; updateScene(); } });
+    
   </script>
 </body>
 </html>
