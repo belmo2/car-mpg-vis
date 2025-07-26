@@ -188,4 +188,51 @@
         .domain([0, d3.max(data, d => d.mpg)])
         .range([h2 - mB2, mT2]);
 
-      svg.selectAll("rec
+      svg.selectAll("rect").data(data).join("rect")
+        .attr("class", "bar")
+        .attr("x", d => x2(d.type))
+        .attr("y", d => y2(d.mpg))
+        .attr("width", x2.bandwidth())
+        .attr("height", d => y2(0) - y2(d.mpg));
+
+      svg.append("g")
+        .attr("transform", `translate(0,${h2 - mB2})`)
+        .call(d3.axisBottom(x2));
+
+      svg.append("g")
+        .attr("transform", `translate(${mL2},0)`)
+        .call(d3.axisLeft(y2));
+
+      svg.append("text")
+        .attr("x", w2/2).attr("y", mT2/2)
+        .attr("text-anchor", "middle").attr("font-size", "18px")
+        .text(`City vs Highway MPG for ${makeObj.make}`);
+
+      svg.selectAll("text.mpg-label").data(data).join("text")
+        .attr("class", "mpg-label")
+        .attr("x", d => x2(d.type) + x2.bandwidth()/2)
+        .attr("y", d => y2(d.mpg) - 8)
+        .attr("text-anchor", "middle")
+        .text(d => d.mpg.toFixed(1));
+
+      d3.select("#vis").append("button")
+        .text("Back to Makes")
+        .on("click", () => {
+          d3.select(".scene-nav").style("display", null);
+          updateScene();
+        });
+    }
+
+    // Render current scene
+    function updateScene() {
+      d3.select("#vis").html("");
+      d3.select(".scene-nav").style("display", null);
+      scenes[scene]();
+    }
+
+    // Navigation buttons
+    d3.select("#prev").on("click", () => { if (scene > 0) { scene--; updateScene(); } });
+    d3.select("#next").on("click", () => { if (scene < scenes.length - 1) { scene++; updateScene(); } });
+  </script>
+</body>
+</html>
